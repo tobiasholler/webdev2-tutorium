@@ -78,7 +78,7 @@ Beziehungen werden in Laravel in den Models erstellt.
 Beispielsweise kann ein Bürger genau eine Passnummer haben. 
 Verknüpfung im Model des Bürgers (citizen):
 ````php
-class Citizen extends Model {
+class Person extends Model {
     public function pass() {
         return $this->hasOne('Pfad zum Model\pass');
 }
@@ -87,7 +87,7 @@ class Citizen extends Model {
 Verknüpfung im Model Personalausweisnummer (pass):
 ````php
 class Pass extends Model {
-    public function citizen() {
+    public function person() {
         return $this->belongsTo('Pfad zum Model\citizen');
     }
 ````
@@ -145,7 +145,134 @@ In der Hilfstaballe werden dann diese Spalten erstellt:
     $table->unsignedBigInteger('books_id');
     $table->foreign('books_id')->references('id')->on('books');
 ````
-### Beispiel einer Datenbankabfrage, welche in einem Array gespeichert wird und dann ausgegeben wird
+
+## Migration-Files
+Es handelt sich hierbei um Beispiele. Durch den Befehl -m wird ja für ein Model die Migration-File automatisch erstellt, allerdings wird man ggf. in der Prüfung auch die Klasse erstellen müssen, daher sollte man folgendes können:
+1. Benennen der Klasse:
+    class CreateUsersTable extends Migration
+2. Füllen der Funktion "up"
+    Wichtig hier der Befehl: Schema::create('users', function (Blueprint $table) 
+3. Je nach Angabe unterschiedliche Spalten erstellen
+````php
+class CreateUsersTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('email')->unique();
+            //Optional
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+```` 
+Die Person hat keine weiteren Abhängigkeiten (in diesem Beispiel). 
+Im folgenden wird kurz beleuchtet, wie man Fremdschlüssel in der Migration erstellt.
+### 1:1-Beziehung:
+Eine Person hat genau eine Passnummer, also muss in der Tabelle der Pässe, die ID der Person zu geordnet werden:
+````php
+class CreatePassesTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('passes', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->timestamps();
+            //Das ist der wichtige Teil hier!
+            $table->unsignedBigInteger('person_id');
+            $table->foreign('person_id')->references('id')->on('people');
+        });
+    }
+````
+
+### 1:N-Beziehung
+Oben, beim erstellen der Tabellenbeziehungen wurde kurz schon auf das erstellen der Fremdschlüssel-Spalten eingegangen. Hier nun die ausführliche Version der 1:N-Beziehung zwischen Publisher (1) und Büchern (N):
+````php
+class CreateBooksTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('books', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('isbn');
+            //Wichtiger Teil: Erstellung der Spalte und Referenzierung auf die ID der Publishers
+            $table->unsignedBigInteger('publisher_id')->nullable();
+            $table->foreign('publisher_id')->references('id')->on('publishers');
+            $table->timestamps();
+        });
+````
+Auf der Gegenseite (der "1"-Beziehung) muss nichts gemacht werden.
+
+### N:M-Beziehung
+Auch hier wurde bereits oben erwähnt, dass man bei einer N:M-Tabelle eine Zwischentabelle erstellt. Daher muss man für diese Beziehung keine Fremdschlüssel in den Tabellen erstellen, sondern nur in der Zwischentabelle.
+Die Zwischentabelle kann man entweder nach der Migration innerhalb einer zugehörigen Klasse machen (wie in diesem Beispiel) oder als seperate Migrations-Datei. Macht man eine sepearte Migrations-Datei, ist zu beachten, dass die zwei zugehörigen Tabellen vorher erstellt werden, sonst kommt es zu einem Fehler.
+````php
+class CreateBooksTable extends Migration
+{
+    public function up()
+    {
+    //Siehe oben
+        });
+        //Zwischentabelle mit den zwei Fremdschlüsselspalten!
+        Schema::create('author_books', function(Blueprint $table) {
+            $table->unsignedBigInteger('author_id');
+            $table->foreign('author_id')->references('id')->on('authors');
+            $table->unsignedBigInteger('books_id');
+            $table->foreign('books_id')->references('id')->on('books');
+        });
+    }
+````
+## Formulare
+Notwendige Komponenten / Einstellungen:
+• Route für get- und post-Aufrufe des Clients
+• Controller mit passenden Funktionen
+• Validierung direkt im Controller oder mit Hilfe einer FormRequest-Klasse
+• Views (Blade-Templates) für das Formular und ggf. weiteren Ansichten
+
+Formulare benötigen in der web.php zwei Routen. Im Beispiel möchten wir Events erstellen.
+````php
+Route::get('/events', 'EventController@create')->name('event_create');
+ Route::post('/events', 'EventController@store')->name('event_store);
+ ```` 
+ Im "EventController" müssen nun die zwei Funktionen "create" und "store gemacht werden:
+ ````php
+ public function create() {
+    return view('event_create');
+    }
+```` 
+Der View stellt uns ein Formular bereit, das so ausschauen kann:
+````hmtl
+<form method="POST" action="{{ route('event_store') }}" id="create-event-form">
+<div>
+    <label for="name" control-label">Name</label>
+<div>
+        <input id="name" type="text" name="name" value="{{ old('name') }}">
+</div>
+</div>
+<div>
+    <button type="submit" class="btn btn-primary">{{ __('Speichern') }}</button>
+ </div>
+</form>
+````
+Die wichtigen Elemente sind folgende:
+- method="POST" -> damit sagen wir das es "abgesendet" wird
+- action="{{ route('event_store') }} -> der View 'event_store' wird in der Methode "store" am ende returnt
+- man braucht ein Label und den Input, sowie einen Button zum absenden
+
+````php
+public function store(Request $request) {
+    $event = new \App\Event();
+    $event->name = $request->get('name');
+    $event->save();
+        return view('event_store')->with('event', $event);
+ }
+````
+## Beispiel einer Datenbankabfrage, welche in einem Array gespeichert wird und dann ausgegeben wird
 
 Code in web.php
 ````php
@@ -164,7 +291,7 @@ Code in dem View 'artists':
 ````
 Der Befehl @foreach lädt nun alle artists, die im Array gespeichert sind in die Variable $artist. Für jeden $artist wird dann der Name als Item einer Liste ausgegeben.
 
-### Beispiel einer for-Schleife
+## Beispiel einer for-Schleife
 In diesem Beispiel wird über eine for-Schleife Artists erstellt und der Name, der an der jeweilgen Stelle steht, verwendet. 
 ````php
  public function run()
@@ -176,3 +303,35 @@ In diesem Beispiel wird über eine for-Schleife Artists erstellt und der Name, d
     }
 ````
 Mit "count($artists)" wird die Anzahl der im Array gespeicherten Werte herausgefunden. Der Name wird in Verbindung mit einer Factory erstellt. Den Namen geben wir hier vor, alle anderen Daten werden aber mit einem faker erstellt (später dazu mehr).
+
+## Middleware
+Middleware kann vielseitig eingesetzt werden:
+    - Protokollierung
+    - Sicherheitsprüfungen
+    - Debugging
+    - Vereinheitlichung uvm.
+ 
+ Middleware funktioniert vor allem als eine Art Filter und überwacht die gesamte Kommunikation zwischen Client und Server
+ 
+Middleware kann enntweder bei einer ankommenden Anfrage oder bei einer Antwort aktiv werden:
+Für Anfragen:
+ ````php
+ public function handle($request, Closure $next) {
+    //Filteranweisungen bla bla
+    return $next($request);
+}
+```` 
+
+Für Antworten:
+````php
+public function handle($request, Closure $next) {
+    $response = $next($request);
+   //Filteranweisungen
+   return $response;
+````
+
+Man kann einen Filter in der web.php auf eine Route registrieren:
+````php
+Route::get("/", function () {
+    return "Welcome})->middleware("Name der Middleware");
+```` 
