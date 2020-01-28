@@ -41,8 +41,8 @@ Read | show | GET | /books/{id} | Zeigt eine Resource mit der angegebenen ID (Te
 Edit | update | PUT/PATCH | /books/{id} | Editieren einzelner oder aller Daten einer bereits bestehenden Resource (Teil der REST-Konvention)
 Add | store | POST | /books | Erstellen einer Resource (Teil der REST-Konvention)
 Delete | destroy | DELETE | /books/{id} | Löschen einer Resource (Teil der REST-Konvention)
-- | create | GET | /books/create | Formular zum erstellen von der Resource (Laravel spezifisch 🐠)
-- | edit | GET | /books/{id}/edit | Formular zum editieren einer Resource (Laravel spezifisch 🐠)
+--- | create | GET | /books/create | Formular zum erstellen von der Resource (Laravel spezifisch 🐠)
+--- | edit | GET | /books/{id}/edit | Formular zum editieren einer Resource (Laravel spezifisch 🐠)
 
 ## Laravel Namenskonventionen
 
@@ -237,7 +237,7 @@ Notwendige Komponenten / Einstellungen:
 Formulare benötigen in der web.php zwei Routen. Im Beispiel möchten wir Events erstellen.
 ````php
 Route::get('/events', 'EventController@create')->name('event_create');
- Route::post('/events', 'EventController@store')->name('event_store);
+ Route::post('/events', 'EventController@store')->name('event_store');
  ```` 
  Im "EventController" müssen nun die zwei Funktionen "create" und "store gemacht werden:
  ````php
@@ -296,7 +296,7 @@ In diesem Beispiel wird über eine for-Schleife Artists erstellt und der Name, d
 ````php
  public function run()
     {
-        $artists = ['Artist1', 'Artist2', 'Artist3', 'Artist4', 'Artist5', 'Artist6, 'Artist7'];
+        $artists = ['Artist1', 'Artist2', 'Artist3', 'Artist4', 'Artist5', 'Artist6', 'Artist7'];
         for($i = 0; $i < count($artists); $i++) {
             factory(Artist::class)->create(["name" => $artists[$i]]);
             }
@@ -333,5 +333,5 @@ public function handle($request, Closure $next) {
 Man kann einen Filter in der web.php auf eine Route registrieren:
 ````php
 Route::get("/", function () {
-    return "Welcome})->middleware("Name der Middleware");
+    return "Welcome"})->middleware("Name der Middleware");
 ```` 
