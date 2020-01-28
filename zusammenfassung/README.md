@@ -81,7 +81,7 @@ Verknüpfung im Model des Bürgers (citizen):
 class Person extends Model {
     public function pass() {
         return $this->hasOne('Pfad zum Model\pass');
-}
+    }
 }
 ````
 Verknüpfung im Model Personalausweisnummer (pass):
@@ -90,6 +90,7 @@ class Pass extends Model {
     public function person() {
         return $this->belongsTo('Pfad zum Model\citizen');
     }
+}
 ````
 Wichtig hierbei ist, dass man nicht zweimal hasOne nehmen darf.
 
@@ -101,18 +102,18 @@ class Book extends Model {
     public function publisher() {
         return $this->belongsTo('App\Book');
     }
- }
+}
 ````
 Es wird also gesagt, dieses Buch hat genau einen Publisher durch die belongsTo-Methode.
 
 Im Publisher-Model sieht es dann wie folgt aus:
 ````php
 class Publisher extends Model {
-        public function books() {
-            return $this->hasMany('App\Book');
+    public function books() {
+        return $this->hasMany('App\Book');
     }
- }
- ````
+}
+````
 Wichtig ist, dass in der Migration-File der Tabelle, in der der Fremdschlüssel steht, auch eine entsprechende Spalte erstellt wird. In der Books-Migration-File muss also für den Publisher noch eine entsprechende Spalte erstellt werden:
 ````php
 $table->unsignedBigInteger('publisher_id');
@@ -169,7 +170,7 @@ class CreateUsersTable extends Migration
             $table->timestamps();
         });
     }
-```` 
+````
 Die Person hat keine weiteren Abhängigkeiten (in diesem Beispiel). 
 Im folgenden wird kurz beleuchtet, wie man Fremdschlüssel in der Migration erstellt.
 ### 1:1-Beziehung:
@@ -205,6 +206,7 @@ class CreateBooksTable extends Migration
             $table->foreign('publisher_id')->references('id')->on('publishers');
             $table->timestamps();
         });
+    }
 ````
 Auf der Gegenseite (der "1"-Beziehung) muss nichts gemacht werden.
 
@@ -229,34 +231,34 @@ class CreateBooksTable extends Migration
 ````
 ## Formulare
 Notwendige Komponenten / Einstellungen:
-• Route für get- und post-Aufrufe des Clients
-• Controller mit passenden Funktionen
-• Validierung direkt im Controller oder mit Hilfe einer FormRequest-Klasse
-• Views (Blade-Templates) für das Formular und ggf. weiteren Ansichten
+- Route für get- und post-Aufrufe des Clients
+- Controller mit passenden Funktionen
+- Validierung direkt im Controller oder mit Hilfe einer FormRequest-Klasse
+- Views (Blade-Templates) für das Formular und ggf. weiteren Ansichten
 
 Formulare benötigen in der web.php zwei Routen. Im Beispiel möchten wir Events erstellen.
 ````php
 Route::get('/events', 'EventController@create')->name('event_create');
- Route::post('/events', 'EventController@store')->name('event_store');
- ```` 
- Im "EventController" müssen nun die zwei Funktionen "create" und "store gemacht werden:
- ````php
- public function create() {
+Route::post('/events', 'EventController@store')->name('event_store');
+```` 
+Im "EventController" müssen nun die zwei Funktionen "create" und "store gemacht werden:
+````php
+public function create() {
     return view('event_create');
-    }
+}
 ```` 
 Der View stellt uns ein Formular bereit, das so ausschauen kann:
-````hmtl
+````html
 <form method="POST" action="{{ route('event_store') }}" id="create-event-form">
-<div>
-    <label for="name" control-label">Name</label>
-<div>
+    <div>
+        <label for="name" control-label">Name</label>
+    <div>
         <input id="name" type="text" name="name" value="{{ old('name') }}">
-</div>
-</div>
-<div>
-    <button type="submit" class="btn btn-primary">{{ __('Speichern') }}</button>
- </div>
+    </div>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">{{ __('Speichern') }}</button>
+    </div>
 </form>
 ````
 Die wichtigen Elemente sind folgende:
@@ -269,8 +271,8 @@ public function store(Request $request) {
     $event = new \App\Event();
     $event->name = $request->get('name');
     $event->save();
-        return view('event_store')->with('event', $event);
- }
+    return view('event_store')->with('event', $event);
+}
 ````
 ## Beispiel einer Datenbankabfrage, welche in einem Array gespeichert wird und dann ausgegeben wird
 
@@ -279,13 +281,13 @@ Code in web.php
 Route::get('/artists', function() {
     return view('artists', ['artists'=>Artist::all()]); 
 });
-//Mit dem Befehl Artist::all() werden alle Artisten, die in der Tabelle gespeichert sind abgerufen und im Array gespeichert
+// Mit dem Befehl Artist::all() werden alle Artisten, die in der Tabelle gespeichert sind abgerufen und im Array gespeichert
 ````
 Code in dem View 'artists':
 ````html
 <ul>
-@foreach($artists as $artist)
-    <li>{{$artist->name}}</li>
+    @foreach($artists as $artist)
+        <li>{{$artist->name}}</li>
     @endforeach
 </ul>
 ````
@@ -294,29 +296,30 @@ Der Befehl @foreach lädt nun alle artists, die im Array gespeichert sind in die
 ## Beispiel einer for-Schleife
 In diesem Beispiel wird über eine for-Schleife Artists erstellt und der Name, der an der jeweilgen Stelle steht, verwendet. 
 ````php
- public function run()
-    {
-        $artists = ['Artist1', 'Artist2', 'Artist3', 'Artist4', 'Artist5', 'Artist6', 'Artist7'];
-        for($i = 0; $i < count($artists); $i++) {
-            factory(Artist::class)->create(["name" => $artists[$i]]);
-            }
+public function run()
+{
+    $artists = ['Artist1', 'Artist2', 'Artist3', 'Artist4', 'Artist5', 'Artist6', 'Artist7'];
+    for($i = 0; $i < count($artists); $i++) {
+        factory(Artist::class)->create(["name" => $artists[$i]]);
+        }
     }
+}
 ````
 Mit "count($artists)" wird die Anzahl der im Array gespeicherten Werte herausgefunden. Der Name wird in Verbindung mit einer Factory erstellt. Den Namen geben wir hier vor, alle anderen Daten werden aber mit einem faker erstellt (später dazu mehr).
 
 ## Middleware
 Middleware kann vielseitig eingesetzt werden:
-    - Protokollierung
-    - Sicherheitsprüfungen
-    - Debugging
-    - Vereinheitlichung uvm.
+- Protokollierung
+- Sicherheitsprüfungen
+- Debugging
+- Vereinheitlichung uvm.
  
- Middleware funktioniert vor allem als eine Art Filter und überwacht die gesamte Kommunikation zwischen Client und Server
+Middleware funktioniert vor allem als eine Art Filter und überwacht die gesamte Kommunikation zwischen Client und Server
  
 Middleware kann enntweder bei einer ankommenden Anfrage oder bei einer Antwort aktiv werden:
 Für Anfragen:
- ````php
- public function handle($request, Closure $next) {
+````php
+public function handle($request, Closure $next) {
     //Filteranweisungen bla bla
     return $next($request);
 }
@@ -326,12 +329,14 @@ Für Antworten:
 ````php
 public function handle($request, Closure $next) {
     $response = $next($request);
-   //Filteranweisungen
-   return $response;
+    //Filteranweisungen
+    return $response;
+}
 ````
 
 Man kann einen Filter in der web.php auf eine Route registrieren:
 ````php
 Route::get("/", function () {
-    return "Welcome"})->middleware("Name der Middleware");
+    return "Welcome"
+})->middleware("Name der Middleware");
 ```` 
