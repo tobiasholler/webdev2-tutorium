@@ -12,3 +12,5 @@
 ### Unterschied create + make
 
 ### lazy & eager
+
+### Aufgaben aus der Altklausur nochmal zusammenschreiben
