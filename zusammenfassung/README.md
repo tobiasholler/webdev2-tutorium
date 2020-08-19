@@ -143,8 +143,8 @@ In der Hilfstaballe werden dann diese Spalten erstellt:
 ````php
     $table->unsignedBigInteger('author_id');
     $table->foreign('author_id')->references('id')->on('authors');
-    $table->unsignedBigInteger('books_id');
-    $table->foreign('books_id')->references('id')->on('books');
+    $table->unsignedBigInteger('book_id');
+    $table->foreign('book_id')->references('id')->on('books');
 ````
 
 ## Migration-Files
@@ -221,11 +221,11 @@ class CreateBooksTable extends Migration
     //Siehe oben
         });
         //Zwischentabelle mit den zwei Fremdschlüsselspalten!
-        Schema::create('author_books', function(Blueprint $table) {
+        Schema::create('author_book', function(Blueprint $table) {
             $table->unsignedBigInteger('author_id');
             $table->foreign('author_id')->references('id')->on('authors');
-            $table->unsignedBigInteger('books_id');
-            $table->foreign('books_id')->references('id')->on('books');
+            $table->unsignedBigInteger('book_id');
+            $table->foreign('book_id')->references('id')->on('books');
         });
     }
 ````
